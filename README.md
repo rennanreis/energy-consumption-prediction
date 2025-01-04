@@ -77,6 +77,48 @@ To maintain clarity, the files were renamed and organized as follows:
   - `energy_dataset.csv` → `energy_consumption_generation_spain.csv`
   - `weather_features.csv` → `weather_data_spain.csv`
 
+  ### Advanced Data Preparation
+
+#### **Steps Performed**
+1. **Handling Missing Values**: 
+   - The dataset analyzed did not contain missing values. However, an example of mean imputation for numerical variables was included for future reference.
+   - Example code:
+     ```
+     numerical_cols = ['PJME_MW']
+     for col in numerical_cols:
+         if energy_data[col].isnull().sum() > 0:
+             energy_data[col].fillna(energy_data[col].mean(), inplace=True)
+     ```
+
+2. **Feature Engineering**:
+   - New features were created to capture seasonal and temporal patterns in energy consumption:
+     - `hour`: Hour of the day.
+     - `day_of_week`: Day of the week.
+   - Example code:
+     ```
+     energy_data['Datetime'] = pd.to_datetime(energy_data['Datetime'])
+     energy_data.set_index('Datetime', inplace=True)
+     energy_data['hour'] = energy_data.index.hour
+     energy_data['day_of_week'] = energy_data.index.dayofweek
+     ```
+
+3. **Processed Data Saved**:
+   - The cleaned and processed dataset was saved as `cleaned_energy_consumption.csv` for further analysis and modeling.
+   - Example code:
+     ```
+     processed_path = "../data/processed/cleaned_energy_consumption.csv"
+     energy_data.to_csv(processed_path, index=False)
+     ```
+
+4. **Visualizations**:
+   - Time series plots were created to analyze daily and weekly trends in energy consumption.
+   - Histograms were generated to explore the distribution of energy usage.
+
+#### **Insights**
+- Energy consumption shows clear daily and weekly patterns, with higher usage observed during weekdays compared to weekends.
+- The new features (`hour` and `day_of_week`) provide valuable insights into temporal trends, which can improve model performance.
+
+
 - **Repository Structure**:
 
   ```
@@ -168,11 +210,28 @@ energy-consumption-prediction/
 
 ## Future Improvements
 
-1. Perform detailed feature engineering to enhance the predictive power of the datasets.
-2. Develop initial machine learning models for baseline predictions.
-3. Incorporate additional data sources, such as weather APIs, for more robust analysis.
-4. Extend the analysis to time-series forecasting techniques.
-5. Build a Streamlit application for visualizing results interactively.
+1. **Validate Processed Data**:
+   - Perform additional exploratory data analysis (EDA) on the processed dataset to confirm the quality of new features and validate data transformations.
+   - Ensure that the new temporal features (`hour`, `day_of_week`) provide meaningful insights for predictive modeling.
+
+2. **Baseline Predictive Modeling**:
+   - Implement initial predictive models using algorithms such as linear regression to establish a baseline performance.
+   - Evaluate model quality using metrics such as \( R^2 \), RMSE, and MAE.
+
+3. **Feature Engineering Refinement**:
+   - Explore additional feature engineering opportunities to enhance model performance.
+   - Incorporate external data sources, such as weather APIs, to enrich the dataset.
+
+4. **Model Optimization**:
+   - Experiment with more advanced machine learning models (e.g., Random Forest, Gradient Boosting) to improve predictions.
+   - Perform hyperparameter tuning to optimize model configurations.
+
+5. **Results Communication**:
+   - Generate comprehensive visualizations (e.g., time series plots, scatter plots) to communicate key findings effectively.
+   - Prepare a detailed report summarizing insights and model performance.
+
+6. **Interactive Application Development**:
+   - Build an interactive dashboard or application (e.g., using Streamlit) to visualize energy consumption predictions and allow user interaction with the results.
 
 ---
 
