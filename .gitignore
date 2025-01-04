@@ -1,4 +1,17 @@
-__pycache__/
-*.csv
-*.ipynb_checkpoints/
+# Ignore Python virtual environment folders
+energy-consumption-env/
+
+# Ignore data files
 data/raw/
+data/processed/
+
+# Ignore Jupyter Notebook checkpoints
+*.ipynb_checkpoints/
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore compiled Python files
+__pycache__/
+*.pyc
