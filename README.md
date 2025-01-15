@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project predicts energy consumption using variables such as temperature, humidity, and time of day. The model leverages multiple datasets to analyze and forecast energy usage patterns effectively.
+This project predicts energy consumption using temporal features such as the hour of the day and the day of the week. A baseline Linear Regression model was developed to analyze and forecast energy usage patterns effectively. The project involves data cleaning, feature engineering, predictive modeling, and visualization to understand energy consumption trends.
 
 ---
 
@@ -19,10 +19,13 @@ To set up the environment for this project, follow these steps:
 2. **Activate the virtual environment**:
 
    - On Windows:
+
      ```bash
      energy-consumption-env\Scripts\activate
      ```
+
    - On macOS/Linux:
+
      ```bash
      source energy-consumption-env/bin/activate
      ```
@@ -59,131 +62,150 @@ To set up the environment for this project, follow these steps:
 
 ---
 
-## Data Collection and Preparation
+## Data Preparation
 
 ### Goals
 
-1. Ensure raw data is collected and organized in the repository structure.
-2. Perform an initial inspection to identify issues (e.g., missing values, inconsistencies).
-3. Prepare processed data for use in Jupyter notebooks.
+1. Load raw data from PJM Hourly Energy Consumption dataset.
+2. Perform an initial inspection to identify missing values or inconsistencies.
+3. Engineer new features to capture temporal patterns in energy consumption.
 
-### File Renaming and Organization
+### Steps Performed
 
-To maintain clarity, the files were renamed and organized as follows:
+1. **Loading Raw Data**:
+The dataset is loaded into a pandas DataFrame for analysis:
 
-- **Renamed Files**:
+   ```python
+   energy_data = pd.read_csv("../data/raw/hourly_energy_consumption_pjme.csv")
+   print(energy_data.head())
+   ```
 
-  - `PJME_hourly.csv` → `hourly_energy_consumption_pjme.csv`
-  - `energy_dataset.csv` → `energy_consumption_generation_spain.csv`
-  - `weather_features.csv` → `weather_data_spain.csv`
+2. **Initial Inspection**:
+- Checked for missing values:
 
-  ### Advanced Data Preparation
-
-#### **Steps Performed**
-1. **Handling Missing Values**: 
-   - The dataset analyzed did not contain missing values. However, an example of mean imputation for numerical variables was included for future reference.
-   - Example code:
-     ```
-     numerical_cols = ['PJME_MW']
-     for col in numerical_cols:
-         if energy_data[col].isnull().sum() > 0:
-             energy_data[col].fillna(energy_data[col].mean(), inplace=True)
-     ```
-
-2. **Feature Engineering**:
-   - New features were created to capture seasonal and temporal patterns in energy consumption:
-     - `hour`: Hour of the day.
-     - `day_of_week`: Day of the week.
-   - Example code:
-     ```
-     energy_data['Datetime'] = pd.to_datetime(energy_data['Datetime'])
-     energy_data.set_index('Datetime', inplace=True)
-     energy_data['hour'] = energy_data.index.hour
-     energy_data['day_of_week'] = energy_data.index.dayofweek
-     ```
-
-3. **Processed Data Saved**:
-   - The cleaned and processed dataset was saved as `cleaned_energy_consumption.csv` for further analysis and modeling.
-   - Example code:
-     ```
-     processed_path = "../data/processed/cleaned_energy_consumption.csv"
-     energy_data.to_csv(processed_path, index=False)
-     ```
-
-4. **Visualizations**:
-   - Time series plots were created to analyze daily and weekly trends in energy consumption.
-   - Histograms were generated to explore the distribution of energy usage.
-
-#### **Insights**
-- Energy consumption shows clear daily and weekly patterns, with higher usage observed during weekdays compared to weekends.
-- The new features (`hour` and `day_of_week`) provide valuable insights into temporal trends, which can improve model performance.
-
-
-- **Repository Structure**:
-
-  ```
-  data/
-  ├── raw/
-  │   ├── hourly_energy_consumption_pjme.csv
-  │   ├── energy_consumption_generation_spain.csv
-  │   ├── weather_data_spain.csv
-  ├── processed/  # Cleaned and ready-to-use data
+  ```python
+  print(energy_data.isnull().sum())
   ```
 
-### Initial Data Inspection
+- Verified data types and basic statistics:
 
-Use the `notebooks/eda.ipynb` notebook to load and inspect the renamed datasets:
+  ```python
+  print(energy_data.info())
+  print(energy_data.describe())
+  ```
 
-```python
-import pandas as pd
+3. **Feature Engineering**:
 
-# Load the data
-energy_data = pd.read_csv("data/raw/hourly_energy_consumption_pjme.csv")
-print(energy_data.head())
+Created new features to capture temporal patterns:
+- `hour`: Hour of the day.
+- `day_of_week`: Day of the week.
 
-# Check data types and missing values
-print(energy_data.info())
-```
+  ```python
+  energy_data['Datetime'] = pd.to_datetime(energy_data['Datetime'])
+  energy_data.set_index('Datetime', inplace=True)
+  energy_data['hour'] = energy_data.index.hour
+  energy_data['day_of_week'] = energy_data.index.dayofweek
+  ```
 
-Perform an initial analysis to identify patterns or inconsistencies in the data.
+4. **Saving Processed Data**:
+The cleaned dataset was saved for further analysis:
+
+  ```python
+  processed_path = "../data/processed/cleaned_energy_consumption.csv"
+  energy_data.to_csv(processed_path)
+  ```
 
 ---
 
-## Project Structure
+## Model Development
 
-The project is organized as follows:
+### Data Splitting
 
-```
-energy-consumption-prediction/
-├── data/
-│   ├── raw/
-│   │   ├── hourly_energy_consumption_pjme.csv
-│   │   ├── energy_consumption_generation_spain.csv
-│   │   ├── weather_data_spain.csv
-│   ├── processed/  # Cleaned and ready-to-use data
-├── notebooks/
-│   ├── data_exploration.ipynb  # Initial exploration of datasets
-├── src/
-│   ├── preprocess.py  # Data preprocessing scripts
-│   ├── utils.py       # Utility functions
-├── requirements.txt   # Python dependencies
-├── LICENSE            # MIT license
-└── README.md          # Project overview (this file)
-```
+The dataset was split into training (70%), validation (15%), and test (15%) subsets while preserving its temporal structure.
+
+   ```python
+   from sklearn.model_selection import train_test_split
+   X = energy_data[['hour', 'day_of_week']]
+   y = energy_data['PJME_MW']
+   X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, shuffle=False)
+   X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, shuffle=False)
+   ```
+
+---
+
+## Model Training
+
+A Linear Regression model was trained using the training dataset:
+
+   ```python
+   from sklearn.linear_model import LinearRegression
+
+   model = LinearRegression()
+   model.fit(X_train, y_train)
+   print("Model training complete!")
+   ```
+
+---
+
+## Model Evaluation and Metrics
+
+The model's performance was evaluated on the validation set using metrics such as MAE, MSE, RMSE, and \( R^2 \):
+
+   ```python
+   from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+   import numpy as np
+
+   y_pred = model.predict(X_val)
+
+   mae = mean_absolute_error(y_val, y_pred)
+   mse = mean_squared_error(y_val, y_pred)
+   rmse = np.sqrt(mse)
+   r2 = r2_score(y_val, y_pred)
+
+   print("Evaluation Metrics:")
+   print(f"MAE: {mae}")
+   print(f"MSE: {mse}")
+   print(f"RMSE: {rmse}")
+   print(f"R²: {r2}")
+   ```
+
+### Results Summary
+- MAE: 4362.43 MW
+- RMSE: 5331.62 MW
+- \( R^2 \): 0.23
+
+
+## Visualization of Model Predictions
+
+A comparison plot between actual and predicted values was created to assess model performance visually:
+
+   ```python
+   import matplotlib.pyplot as plt
+
+   plt.figure(figsize=(10, 6))
+   plt.plot(y_val.values[:100], label="Actual Values", marker='o')
+   plt.plot(y_pred[:100], label="Predicted Values", marker='x')
+   plt.legend()
+   plt.title("Actual vs Predicted Energy Consumption")
+   plt.xlabel("Samples")
+   plt.ylabel("Energy Consumption (MW)")
+   plt.show()
+   ```
 
 ---
 
 ## Key Features
 
 1. **Initial Data Cleaning**:
-
-   - Inspection and handling of missing values.
-   - Preparation of cleaned datasets for downstream tasks.
+   - Addressed missing values in numerical columns.
+   - Prepared a cleaned dataset for downstream tasks.
 
 2. **Exploratory Data Analysis (EDA)**:
+   - Visualized temporal patterns in energy consumption.
+   - Generated summary statistics to understand data distributions.
 
-   - Preliminary visualizations of energy consumption patterns.
-   - Initial summary statistics and data quality checks.
+3. **Baseline Predictive Modeling**:
+   - Developed a Linear Regression model as a baseline for forecasting.
 
 ---
 
@@ -192,7 +214,7 @@ energy-consumption-prediction/
 1. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/your-username/energy-consumption-prediction.git
+   git clone https://github.com/rennanreis/energy-consumption-prediction.git
    cd energy-consumption-prediction
    ```
 
@@ -208,30 +230,46 @@ energy-consumption-prediction/
 
 ---
 
-## Future Improvements
+## Project Structure
 
-1. **Validate Processed Data**:
-   - Perform additional exploratory data analysis (EDA) on the processed dataset to confirm the quality of new features and validate data transformations.
-   - Ensure that the new temporal features (`hour`, `day_of_week`) provide meaningful insights for predictive modeling.
+The project is organized as follows:
 
-2. **Baseline Predictive Modeling**:
-   - Implement initial predictive models using algorithms such as linear regression to establish a baseline performance.
-   - Evaluate model quality using metrics such as \( R^2 \), RMSE, and MAE.
+```text
+energy-consumption-prediction/
+├── data/
+│   ├── raw/
+│   │   ├── hourly_energy_consumption_pjme.csv
+│   ├── processed/
+│       ├── cleaned_energy_consumption.csv
+├── notebooks/
+│   ├── eda.ipynb  # Exploratory Data Analysis notebook
+│   ├── modeling.ipynb  # Predictive modeling notebook
+├── src/
+│   ├── preprocess.py  # Data preprocessing scripts
+│   ├── utils.py       # Utility functions
+├── requirements.txt    # Python dependencies
+├── LICENSE             # MIT license
+└── README.md           # Project overview (this file)
+```
 
-3. **Feature Engineering Refinement**:
-   - Explore additional feature engineering opportunities to enhance model performance.
-   - Incorporate external data sources, such as weather APIs, to enrich the dataset.
+---
 
-4. **Model Optimization**:
-   - Experiment with more advanced machine learning models (e.g., Random Forest, Gradient Boosting) to improve predictions.
-   - Perform hyperparameter tuning to optimize model configurations.
+### Future Improvements
 
-5. **Results Communication**:
-   - Generate comprehensive visualizations (e.g., time series plots, scatter plots) to communicate key findings effectively.
-   - Prepare a detailed report summarizing insights and model performance.
+1. **Feature Engineering**:
+   - Add external variables such as temperature or holidays to improve predictions.
 
-6. **Interactive Application Development**:
-   - Build an interactive dashboard or application (e.g., using Streamlit) to visualize energy consumption predictions and allow user interaction with the results.
+2. **Advanced Modeling**:
+   - Experiment with advanced algorithms like Random Forest or Gradient Boosting.
+
+3. **Hyperparameter Tuning**:
+   - Use Grid Search or Random Search to optimize model performance.
+
+4. **Time Series-Specific Models**:
+   - Explore models like ARIMA or LSTM for better handling of temporal dependencies.
+
+5. **Cross-Validation**:
+   - Implement cross-validation to ensure robust evaluation of model generalizability.
 
 ---
 
@@ -239,4 +277,3 @@ energy-consumption-prediction/
 
 - PJM Interconnection LLC for providing hourly energy consumption data.
 - Nicholas J. Hanas for sharing comprehensive energy and weather data on Kaggle.
-
