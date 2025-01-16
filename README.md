@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project predicts energy consumption using temporal features such as the hour of the day and the day of the week. A baseline Linear Regression model was developed to analyze and forecast energy usage patterns effectively. The project involves data cleaning, feature engineering, predictive modeling, and visualization to understand energy consumption trends.
+This project aims to predict energy consumption using temporal features such as the hour of the day and the day of the week. A baseline Linear Regression model was developed to analyze and forecast energy usage patterns effectively. The project involves **data cleaning**, **feature engineering**, **predictive modeling**, and **visualization** to understand energy consumption trends.
 
 ---
 
@@ -81,6 +81,7 @@ The dataset is loaded into a pandas DataFrame for analysis:
    ```
 
 2. **Initial Inspection**:
+
 - Checked for missing values:
 
   ```python
@@ -97,6 +98,7 @@ The dataset is loaded into a pandas DataFrame for analysis:
 3. **Feature Engineering**:
 
 Created new features to capture temporal patterns:
+
 - `hour`: Hour of the day.
 - `day_of_week`: Day of the week.
 
@@ -125,6 +127,7 @@ The dataset was split into training (70%), validation (15%), and test (15%) subs
 
    ```python
    from sklearn.model_selection import train_test_split
+   
    X = energy_data[['hour', 'day_of_week']]
    y = energy_data['PJME_MW']
    X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, shuffle=False)
@@ -170,10 +173,11 @@ The model's performance was evaluated on the validation set using metrics such a
    ```
 
 ### Results Summary
-- MAE: 4362.43 MW
-- RMSE: 5331.62 MW
-- \( R^2 \): 0.23
 
+- MAE: 4251.23 MW
+- MSE: 18,263,025.87 MW²
+- RMSE: 4273.53 MW
+- \( R^2 \): -96.14
 
 ## Visualization of Model Predictions
 
@@ -254,7 +258,7 @@ energy-consumption-prediction/
 
 ---
 
-### Future Improvements
+## Future Improvements
 
 1. **Feature Engineering**:
    - Add external variables such as temperature or holidays to improve predictions.
